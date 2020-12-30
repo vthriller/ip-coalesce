@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+import ipaddress
+from sys import stdin
+from collections import defaultdict
+
+nets = defaultdict(list)
+for i in stdin.read().splitlines():
+	i = ipaddress.ip_network(i)
+	nets[i.prefixlen].append(int(i.network_address))
+
+for prefix in range(32, 0, -1):
+	# mask for supernet
+	mask = 0xffffffff - ((1 << 32-(prefix-1)) - 1)
+	for supernet in set(i & mask for i in nets[prefix]):
+		supernet_ips = [
+			i for i in nets[prefix]
+			if i & mask == supernet
+		]
+		if len(supernet_ips) == 2:
+			print('coalescing %s' % [
+				ipaddress.ip_network((i, prefix))
+				for i in supernet_ips
+			])
+			nets[prefix-1].append(min(supernet_ips))
+			for i in supernet_ips:
+				nets[prefix].remove(i)
+
+for prefixlen, subnets in nets.items():
+	for subnet in subnets:
+		print(ipaddress.ip_network((subnet, prefixlen)))
