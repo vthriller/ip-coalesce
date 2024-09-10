@@ -3,9 +3,19 @@ import ipaddress
 from sys import stdin
 from collections import defaultdict
 
+netlist = [
+	ipaddress.ip_network(i)
+	for i in stdin.read().splitlines()
+]
+for i in netlist[:]:
+	for j in netlist:
+		if j != i and j.subnet_of(i):
+			print(j, 'subnet of', i)
+			netlist.remove(j)
+			break
+
 nets = defaultdict(list)
-for i in stdin.read().splitlines():
-	i = ipaddress.ip_network(i)
+for i in netlist:
 	nets[i.prefixlen].append(int(i.network_address))
 
 for prefix in range(32, 0, -1):
