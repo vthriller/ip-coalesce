@@ -5,8 +5,16 @@ from collections import defaultdict
 
 nets = defaultdict(list)
 for i in stdin.read().splitlines():
-	i = ipaddress.ip_network(i)
-	nets[i.prefixlen].append(i)
+	if ' - ' in i:
+		i = i.split(' - ')
+		newnets = ipaddress.summarize_address_range(
+			ipaddress.IPv4Address(i[0]),
+			ipaddress.IPv4Address(i[1]),
+		)
+	else:
+		newnets = [ipaddress.ip_network(i)]
+	for n in newnets:
+		nets[n.prefixlen].append(n)
 
 for prefixlen in range(32, 0, -1):
 	for net in nets[prefixlen][:]:
