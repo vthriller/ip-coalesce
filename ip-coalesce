@@ -3,7 +3,7 @@ import ipaddress
 from sys import stdin
 from collections import defaultdict
 
-nets = defaultdict(list)
+nets = defaultdict(set)
 for i in stdin.read().splitlines():
 	if ' - ' in i:
 		i = i.split(' - ')
@@ -14,10 +14,10 @@ for i in stdin.read().splitlines():
 	else:
 		newnets = [ipaddress.ip_network(i)]
 	for n in newnets:
-		nets[n.prefixlen].append(n)
+		nets[n.prefixlen].add(n)
 
 for prefixlen in range(32, 0, -1):
-	for net in nets[prefixlen][:]:
+	for net in list(nets[prefixlen]):
 		for superprefixlen in range(1, prefixlen):
 			found = False
 			for supernet in nets[superprefixlen]:
@@ -30,7 +30,7 @@ for prefixlen in range(32, 0, -1):
 				break
 
 for prefixlen in nets:
-	nets[prefixlen] = [int(i.network_address) for i in nets[prefixlen]]
+	nets[prefixlen] = set(int(i.network_address) for i in nets[prefixlen])
 
 for prefix in range(32, 0, -1):
 	# mask for supernet
@@ -45,7 +45,7 @@ for prefix in range(32, 0, -1):
 				ipaddress.ip_network((i, prefix))
 				for i in supernet_ips
 			])
-			nets[prefix-1].append(min(supernet_ips))
+			nets[prefix-1].add(min(supernet_ips))
 			for i in supernet_ips:
 				nets[prefix].remove(i)
 
