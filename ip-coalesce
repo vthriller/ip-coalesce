@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 import ipaddress
-from sys import stdin
+from sys import stdin, stderr, argv
 from collections import defaultdict
+
+def dbg(*args, **kwargs):
+	if '-v' in argv:
+		print(*args, **kwargs, file=stderr)
 
 nets = defaultdict(set)
 for i in stdin.read().splitlines():
@@ -22,7 +26,7 @@ for prefixlen in range(32, 0, -1):
 			found = False
 			for supernet in nets[superprefixlen]:
 				if net.subnet_of(supernet):
-					print(net, 'subnet of', supernet)
+					dbg(net, 'is a subnet of', supernet)
 					nets[prefixlen].remove(net)
 					found = True
 					break
@@ -41,7 +45,7 @@ for prefix in range(32, 0, -1):
 			if i & mask == supernet
 		]
 		if len(supernet_ips) == 2:
-			print('coalescing %s' % [
+			dbg('coalescing %s' % [
 				ipaddress.ip_network((i, prefix))
 				for i in supernet_ips
 			])
